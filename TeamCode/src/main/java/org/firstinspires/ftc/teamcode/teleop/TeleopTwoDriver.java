@@ -40,6 +40,16 @@ public class TeleopTwoDriver extends CommandOpMode {
                         lastPos = liftLowBucket;
                     }
                 })),
+                RisingEdgeDetector.listen(() -> gamepad2.x, FnCommand.once(t -> {
+                    if (robot.stateMachine.state() == GRABBED || robot.stateMachine.state() == CHAMBER) {
+                        robot.stateMachine.transition(CHAMBER, liftHighChamber);
+                    }
+                })),
+                RisingEdgeDetector.listen(() -> gamepad2.y, FnCommand.once(t -> {
+                    if (robot.stateMachine.state() == GRABBED || robot.stateMachine.state() == CHAMBER) {
+                        robot.stateMachine.transition(CHAMBER, liftLowChamber);
+                    }
+                })),
                 RisingEdgeDetector.listen(() -> gamepad2.right_bumper, FnCommand.once(t -> {
                     if (robot.stateMachine.state() == INTAKE || robot.stateMachine.state() == EXTEND_GRAB) {
                         grabRot = 0;
@@ -47,16 +57,16 @@ public class TeleopTwoDriver extends CommandOpMode {
                     } else if (robot.stateMachine.state() == EXTEND) {
                         robot.stateMachine.transition(EXTEND_GRAB);
                     } else if (robot.stateMachine.state() == GRABBED) {
-                        robot.stateMachine.transition(lastState, lastPos);
-                    } else if (robot.stateMachine.state() == BUCKET) {
+                        robot.stateMachine.transition(SPECIMEN);
+                    } else if (robot.stateMachine.state() == BUCKET  || robot.stateMachine.state() == CHAMBER || robot.stateMachine.state() == SPECIMEN) {
                         robot.stateMachine.transition(INTAKE);
                     }
                 })),
                 RisingEdgeDetector.listen(() -> gamepad2.left_bumper, FnCommand.once(t -> {
-                    if (robot.stateMachine.state() == GRABBED) {
-                        robot.stateMachine.transition(INTAKE);
-                    } else if (robot.stateMachine.state() == EXTEND_GRAB) {
+                    if (robot.stateMachine.state() == INTAKE || robot.stateMachine.state() == EXTEND_GRAB) {
                         robot.stateMachine.transition(EXTEND);
+                    } else if (robot.stateMachine.state() == GRABBED) {
+                        robot.stateMachine.transition(INTAKE);
                     }
                 })),
                 new Listener(() -> new Vec(gamepad2.left_stick_x, gamepad2.left_stick_y).norm() > 0.5,

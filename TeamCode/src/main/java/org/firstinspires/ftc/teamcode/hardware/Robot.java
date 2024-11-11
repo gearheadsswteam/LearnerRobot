@@ -13,7 +13,7 @@ public class Robot {
         lift = new Lift(opMode, auto);
         stateMachine = RobotStateMachine.get(opMode, this, RobotStateMachine.robotStates.INTAKE);
         opMode.register(drive, intake, lift);
-        lift.setArm(new ArmPosition(armUp,0, 0));
+        lift.setArm(armGrab);
         lift.setClaw(clawOpen);
         intake.set(1);
     }

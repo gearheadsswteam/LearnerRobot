@@ -54,7 +54,7 @@ public class Lift implements Subsystem {
     public static class ArmPosition {
         public static final double armZero = 0.58;
         public static final double armRange = 3.16;
-        public static final double diffZero = 0.27;
+        public static final double diffZero = 0.375;
         public static final double diffRange = 5.76;
         public final double armAng;
         public final double wristAng;
@@ -85,7 +85,7 @@ public class Lift implements Subsystem {
             return (pivotKgs + pivotKgd * liftState.x) * cos(pivotState.x)
                     + pivotKv * pivotState.v + pivotKa * pivotState.a;});
     public static double liftKp = 0.5;
-    public static double liftKi = 0.2;
+    public static double liftKi = 0.5;
     public static double liftKd = 0;
     public static double liftKgs = 0.04;
     public static double liftKgd = 0.001;
@@ -99,7 +99,7 @@ public class Lift implements Subsystem {
             return (liftKgs + liftKgd * liftState.x) * sin(pivotState.x) +
                     liftKs * signum(liftState.v) + liftKv * liftState.v + liftKa * liftState.a;});
     public static double turretKp = 2;
-    public static double turretKi = 0;
+    public static double turretKi = 2;
     public static double turretKd = 0;
     public static double turretKs = 0.1;
     public static double turretKv = 0.03;
@@ -126,14 +126,18 @@ public class Lift implements Subsystem {
     public static final LiftPosition liftExtend = new LiftPosition(15, 0, 0);
     public static final LiftPosition liftSpecimen = new LiftPosition(8, 0, 0);
     public static final LiftPosition liftHighBucket = new LiftPosition(30.5, 0, pivotUp);
-    public static final LiftPosition liftLowBucket = new LiftPosition (16, 0, pivotUp);
+    public static final LiftPosition liftLowBucket = new LiftPosition (15, 0, pivotUp);
+    public static final LiftPosition liftLowChamber = new LiftPosition(6, PI/2, pivotUp);
+    public static final LiftPosition liftHighChamber = new LiftPosition(19.5, PI/2, pivotUp);
     public static final double armUp = 0.35;
+    public static final ArmPosition armRest = new ArmPosition(0, 0, 0);
     public static final ArmPosition armGrab = new ArmPosition(armUp, 0, 0);
     public static final ArmPosition armBucket = new ArmPosition(armUp, PI/2, 0);
+    public static final ArmPosition armChamber = new ArmPosition(0, 0, -1.31);
     public static final ArmPosition armFlick = new ArmPosition(armUp, 3*PI/4, 0);
     public static final double clawOpen = 0.08;
     public static final double clawClosed = 0.50;
-    public static final double grabHyst = 0.175;
+    public static final double grabHyst = 0.262;
     private DcMotorEx pivot;
     private DcMotorEx liftR;
     private DcMotorEx liftL;
@@ -149,6 +153,7 @@ public class Lift implements Subsystem {
     private MotionProfile liftProfile = new DelayProfile(0, new MotionState(0, 0), 0);
     private MotionProfile turretProfile = new DelayProfile(0, new MotionState(0, 0), 0);
     private ArmPosition armPos = armGrab;
+    private boolean wristFlipped = false;
     private boolean rest = true;
     public Lift(CommandOpMode opMode, boolean auto) {
         exhub = opMode.hardwareMap.get(LynxModule.class, "exhub");
@@ -184,24 +189,16 @@ public class Lift implements Subsystem {
         armPos = pos;
     }
     public void setGrab(double angle, double armAng, double t) {
-        double newAng = ((angle - turretProfile.state(t).x) % (2*PI) + 3*PI) % (2*PI) - PI;
-        double rot;
-        if (newAng > PI/2) {
-            if (newAng < PI/2 + grabHyst && abs(newAng - armPos.wristRot) < PI/2) {
-                rot = newAng;
-            } else {
-                rot = newAng - PI;
-            }
-        } else if (newAng < -PI/2) {
-            if (newAng > -PI/2 - grabHyst && abs(newAng - armPos.wristRot) < PI/2) {
-                rot = newAng;
-            } else {
-                rot = newAng + PI;
-            }
+        double rot = ((angle - turretProfile.state(t).x) % (2*PI) + 3*PI) % (2*PI) - PI;
+        double flippedRot = ((angle - turretProfile.state(t).x + PI) % (2*PI) + 3*PI) % (2*PI) - PI;
+        if ((!wristFlipped && abs(rot) < PI/2 + grabHyst) ||
+            (wristFlipped && abs(flippedRot) > PI/2 + grabHyst)) {
+            wristFlipped = false;
+            armPos = new ArmPosition(armAng, 0, rot);
         } else {
-            rot = newAng;
+            wristFlipped = true;
+            armPos = new ArmPosition(armAng, 0, flippedRot);
         }
-        armPos = new ArmPosition(armAng, 0, rot);
     }
     public Command goTo(LiftPosition pos) {
         return new FnCommand(t -> {
@@ -241,6 +238,10 @@ public class Lift implements Subsystem {
             }
         }, t -> {}, (t, b) -> rest = true, t -> t > restTime(), this);
     }
+    public Command specimen() {
+        return new FnCommand(t -> {liftProfile = AsymProfile.extendAsym(liftProfile, liftConstraints,
+                t, new MotionState(liftProfile.state(t).x - 5.5, 0));}, t -> {}, (t, b) -> {}, t -> t > restTime() + 0.15, this);
+    }
     public void setClaw(double pos) {
         claw.setPosition(pos);
     }
@@ -256,6 +257,7 @@ public class Lift implements Subsystem {
         MotionState turretState = turretProfile.state(t);
         if (pivotState.x == 0) {
             pivot.setPower(-0.1);
+            pivotPidf.reset(t);
         } else {
             pivotPidf.set(pivotState.x);
             pivotPidf.update(t, pos.pivotAng, pivotState, liftState);
@@ -263,6 +265,8 @@ public class Lift implements Subsystem {
         if (rest) {
             liftR.setPower(-0.3);
             liftL.setPower(-0.3);
+            liftPidf.reset(t);
+            turretPidf.reset(t);
         } else {
             liftPidf.set(liftState.x);
             turretPidf.set(turretState.x);
@@ -271,9 +275,9 @@ public class Lift implements Subsystem {
             pivot.setPower(pivotPidf.get());
             liftR.setPower(liftPidf.get() + turretPidf.get());
             liftL.setPower(liftPidf.get() - turretPidf.get());
-            arm.setPosition(armPos.armPos);
-            diffR.setPosition(armPos.diffRPos);
-            diffL.setPosition(armPos.diffLPos);
         }
+        arm.setPosition(armPos.armPos);
+        diffR.setPosition(armPos.diffRPos);
+        diffL.setPosition(armPos.diffLPos);
     }
 }

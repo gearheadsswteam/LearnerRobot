@@ -21,14 +21,12 @@ public class RobotStateMachine {
                         FnCommand.once(t -> robot.intake.set(0), robot.intake),
                         robot.lift.goTo(liftExtend)))
                 .addTransition(robotStates.INTAKE, robotStates.GRABBED, new SeqCommand(
-                        new WaitCommand(t -> {
-                            robot.lift.setClaw(clawClosed);
-                            robot.lift.setArm(new ArmPosition(0, 0, 0));}, 0.25, subsystems),
-                        new WaitCommand(t -> robot.lift.setArm(armBucket), 0.25, subsystems)))
+                        new WaitCommand(t -> robot.lift.setArm(armRest), 0.15, t -> robot.lift.setClaw(clawClosed), subsystems),
+                        new WaitCommand(0.15, t -> robot.lift.setArm(armBucket), subsystems)))
                 .addTransition(robotStates.EXTEND, robotStates.EXTEND_GRAB, new WaitCommand(t ->
                         robot.lift.setArm(new ArmPosition(0, 0, robot.lift.armPos().wristRot)), 0.15, robot.lift))
                 .addTransition(robotStates.EXTEND_GRAB, robotStates.EXTEND, new WaitCommand(t ->
-                        robot.lift.setArm(new ArmPosition(armUp, 0, robot.lift.armPos().wristRot)), 0.25, robot.lift))
+                        robot.lift.setArm(new ArmPosition(armUp, 0, robot.lift.armPos().wristRot)), 0.15, robot.lift))
                 .addTransition(robotStates.EXTEND_GRAB, robotStates.GRABBED, new SeqCommand(
                         new WaitCommand(t -> robot.lift.setClaw(clawClosed), 0.25, subsystems),
                         new WaitCommand(t -> robot.lift.setArm(armBucket), 0.15, subsystems),
@@ -39,11 +37,10 @@ public class RobotStateMachine {
                     robot.intake.set(1);}, 0.25, subsystems))
                 .addTransition(robotStates.GRABBED, robotStates.SPECIMEN, new ParCommand(
                         FnCommand.once(t -> robot.intake.set(1), robot.intake),
-                        robot.lift.goTo(liftSpecimen)
-                ))
+                        robot.lift.goTo(liftSpecimen)))
                 .addTransition(robotStates.SPECIMEN, robotStates.INTAKE, new SeqCommand(
-                        new WaitCommand(t -> robot.lift.setClaw(clawOpen), 0.25, robot.lift)
-                ))
+                        new WaitCommand(t -> robot.lift.setClaw(clawOpen), 0.25, t -> robot.lift.setArm(armGrab), robot.lift),
+                        robot.lift.goBack()))
                 .addTransition(robotStates.GRABBED, robotStates.BUCKET, a -> robot.lift.goTo((LiftPosition)a[0]))
                 .addTransition(robotStates.BUCKET, robotStates.BUCKET, a -> robot.lift.goTo((LiftPosition)a[0]))
                 .addTransition(robotStates.BUCKET, robotStates.INTAKE, new SeqCommand(
@@ -52,12 +49,23 @@ public class RobotStateMachine {
                             robot.lift.setArm(armFlick);
                         }, 0.25, subsystems),
                         new WaitCommand(t -> {
-                            robot.lift.setArm(new ArmPosition(0, 0, 0));
+                            robot.lift.setArm(armRest);
                             robot.intake.set(1);}, 0.15, subsystems),
                         new ParCommand(
-                            new WaitCommand(0.15, (t, b) -> robot.lift.setArm(armGrab)),
+                            new WaitCommand(0.25, t -> robot.lift.setArm(armGrab)),
+                            robot.lift.goBack())))
+                .addTransition(robotStates.GRABBED, robotStates.CHAMBER, a -> new ParCommand(
+                    FnCommand.once(t -> robot.lift.setArm(armChamber)), 
+                    robot.lift.goTo((LiftPosition)a[0])))
+                .addTransition(robotStates.CHAMBER, robotStates.CHAMBER, a -> robot.lift.goTo((LiftPosition)a[0]))
+                .addTransition(robotStates.CHAMBER, robotStates.INTAKE, new SeqCommand(
+                        robot.lift.specimen(),
+                        new WaitCommand(t -> robot.lift.setClaw(clawOpen), 0.25, t -> {
+                            robot.lift.setArm(armRest);
+                            robot.intake.set(1);}, subsystems),
+                        new ParCommand(
+                            new WaitCommand(0.25, t -> robot.lift.setArm(armGrab)),
                             robot.lift.goBack())));
-
         return builder.build(state);
     }
 }
