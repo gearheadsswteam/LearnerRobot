@@ -9,7 +9,7 @@ public class Intake implements Subsystem {
     public Intake(CommandOpMode opMode, boolean auto) {
         intakeR = opMode.hardwareMap.get(CRServo.class, "intakeR");
         intakeL = opMode.hardwareMap.get(CRServo.class, "intakeL");
-        intakeL.setDirection(DcMotorSimple.Direction.REVERSE);
+        intakeR.setDirection(DcMotorSimple.Direction.REVERSE);
     }
     public void set(double power) {
         intakeR.setPower(power);

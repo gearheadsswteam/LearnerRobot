@@ -17,6 +17,7 @@ import org.firstinspires.ftc.teamcode.command.FnCommand;
 import org.firstinspires.ftc.teamcode.command.Subsystem;
 import org.firstinspires.ftc.teamcode.control.AsymProfile;
 import org.firstinspires.ftc.teamcode.control.AsymProfile.AsymConstraints;
+import org.firstinspires.ftc.teamcode.control.ChainProfile;
 import org.firstinspires.ftc.teamcode.control.DelayProfile;
 import org.firstinspires.ftc.teamcode.control.MotionProfile;
 import org.firstinspires.ftc.teamcode.control.MotionState;
@@ -112,6 +113,7 @@ public class Lift implements Subsystem {
     public static double pivotAi = 50;
     public static double pivotAf = 20;
     public static final AsymConstraints pivotConstraints = new AsymConstraints(pivotVm, pivotAi, pivotAf);
+    public static final AsymConstraints pivotBackConstraints = new AsymConstraints(2, 15, 15);
     public static double liftVm = 75;
     public static double liftAi = 750;
     public static double liftAf = 200;
@@ -132,9 +134,9 @@ public class Lift implements Subsystem {
     public static final double armUp = 0.35;
     public static final ArmPosition armRest = new ArmPosition(0, 0, 0);
     public static final ArmPosition armGrab = new ArmPosition(armUp, 0, 0);
-    public static final ArmPosition armBucket = new ArmPosition(armUp, PI/2, 0);
+    public static final ArmPosition armBucket = new ArmPosition(armUp, 1.10, 0);
     public static final ArmPosition armChamber = new ArmPosition(0, 0, -1.31);
-    public static final ArmPosition armFlick = new ArmPosition(armUp, 3*PI/4, 0);
+    public static final ArmPosition armFlick = new ArmPosition(armUp, 1.89, 0);
     public static final double clawOpen = 0.08;
     public static final double clawClosed = 0.50;
     public static final double grabHyst = 0.262;
@@ -145,18 +147,19 @@ public class Lift implements Subsystem {
     private ServoImplEx diffR;
     private ServoImplEx diffL;
     private Servo claw;
-    private LynxModule exhub;
     private PidfController pivotPidf = new PidfController(pivotCoeffs);
     private PidfController liftPidf = new PidfController(liftCoeffs);
     private PidfController turretPidf = new PidfController(turretCoeffs);
     private MotionProfile pivotProfile = new DelayProfile(0, new MotionState(0, 0), 0);
     private MotionProfile liftProfile = new DelayProfile(0, new MotionState(0, 0), 0);
     private MotionProfile turretProfile = new DelayProfile(0, new MotionState(0, 0), 0);
+    private double pivotOffset = 0;
+    private double liftROffset = 0;
+    private double liftLOffset = 0;
     private ArmPosition armPos = armGrab;
     private boolean wristFlipped = false;
-    private boolean rest = true;
+    private double zeroTime = 0;
     public Lift(CommandOpMode opMode, boolean auto) {
-        exhub = opMode.hardwareMap.get(LynxModule.class, "exhub");
         pivot = opMode.hardwareMap.get(DcMotorEx.class, "pivot");
         liftR = opMode.hardwareMap.get(DcMotorEx.class, "liftR");
         liftL = opMode.hardwareMap.get(DcMotorEx.class, "liftL");
@@ -179,11 +182,9 @@ public class Lift implements Subsystem {
         return max(pivotProfile.tf(), max(liftProfile.tf(), turretProfile.tf()));
     }
     public void reset() {
-        try {
-            new LynxResetMotorEncoderCommand(exhub, pivot.getPortNumber()).send();
-            new LynxResetMotorEncoderCommand(exhub, liftR.getPortNumber()).send();
-            new LynxResetMotorEncoderCommand(exhub, liftR.getPortNumber()).send();
-        } catch (InterruptedException | LynxNackException e) {}
+        pivotOffset = pivot.getCurrentPosition();
+        liftROffset = liftR.getCurrentPosition();
+        liftLOffset = liftL.getCurrentPosition();
     }
     public void setArm(ArmPosition pos) {
         armPos = pos;
@@ -202,8 +203,8 @@ public class Lift implements Subsystem {
     }
     public Command goTo(LiftPosition pos) {
         return new FnCommand(t -> {
-            if (rest) {
-                rest = false;
+            if (!Double.isNaN(zeroTime)) {
+                zeroTime = Double.NaN;
                 reset();
             }
             if (pivotProfile.state(t).x == pos.pivotAng) {
@@ -222,6 +223,7 @@ public class Lift implements Subsystem {
         }, t -> {}, (t, b) -> {}, t -> t > restTime(), this);
     }
     public Command goBack() {
+        double interT = Double.NaN;
         return new FnCommand(t -> {
             if (pivotProfile.state(t).x == 0) {
                 turretProfile = AsymProfile.extendAsym(turretProfile, turretConstraints,
@@ -231,16 +233,18 @@ public class Lift implements Subsystem {
             } else {
                 turretProfile = AsymProfile.extendAsym(turretProfile, turretConstraints,
                         t, new MotionState(0, 0));
+                MotionProfile pivotBackProfile = AsymProfile.extendAsym(pivotProfile, pivotBackConstraints,
+                        turretProfile.tf(), new MotionState(PI/2, 0));
                 liftProfile = AsymProfile.extendAsym(liftProfile, liftConstraints,
-                        turretProfile.tf(), new MotionState(0, 0));
-                pivotProfile = AsymProfile.extendAsym(pivotProfile, pivotConstraints,
-                        liftProfile.ti() + 0.15, new MotionState(0, 0));
+                        pivotBackProfile.tf(), new MotionState(0, 0));
+                pivotProfile = new ChainProfile(pivotBackProfile, AsymProfile.extendAsym(pivotBackProfile, pivotConstraints,
+                        pivotBackProfile.tf() + 0.15, new MotionState(0, 0)));
             }
-        }, t -> {}, (t, b) -> rest = true, t -> t > restTime(), this);
+        }, t -> {}, (t, b) -> zeroTime = restTime(), t -> t > restTime(), this);
     }
     public Command specimen() {
         return new FnCommand(t -> {liftProfile = AsymProfile.extendAsym(liftProfile, liftConstraints,
-                t, new MotionState(liftProfile.state(t).x - 5.5, 0));}, t -> {}, (t, b) -> {}, t -> t > restTime() + 0.15, this);
+                t, new MotionState(liftProfile.state(t).x - 5, 0));}, t -> {}, (t, b) -> {}, t -> t > restTime() + 0.15, this);
     }
     public void setClaw(double pos) {
         claw.setPosition(pos);
@@ -250,8 +254,8 @@ public class Lift implements Subsystem {
     }
     @Override
     public void update(double t, boolean active) {
-        LiftPosition pos = LiftPosition.fromPos(pivot.getCurrentPosition(),
-                liftR.getCurrentPosition(), liftL.getCurrentPosition());
+        LiftPosition pos = LiftPosition.fromPos(pivot.getCurrentPosition() - pivotOffset,
+                liftR.getCurrentPosition() - liftROffset, liftL.getCurrentPosition() - liftLOffset);
         MotionState pivotState = pivotProfile.state(t);
         MotionState liftState = liftProfile.state(t);
         MotionState turretState = turretProfile.state(t);
@@ -262,9 +266,10 @@ public class Lift implements Subsystem {
             pivotPidf.set(pivotState.x);
             pivotPidf.update(t, pos.pivotAng, pivotState, liftState);
         }
-        if (rest) {
-            liftR.setPower(-0.3);
-            liftL.setPower(-0.3);
+        if (!Double.isNaN(zeroTime)) {
+            double power = (t - zeroTime < 0.25) ? -0.5 : -0.25;
+            liftR.setPower(power);
+            liftL.setPower(power);
             liftPidf.reset(t);
             turretPidf.reset(t);
         } else {

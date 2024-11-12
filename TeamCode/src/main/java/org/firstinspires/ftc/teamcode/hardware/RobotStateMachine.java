@@ -22,7 +22,10 @@ public class RobotStateMachine {
                         robot.lift.goTo(liftExtend)))
                 .addTransition(robotStates.INTAKE, robotStates.GRABBED, new SeqCommand(
                         new WaitCommand(t -> robot.lift.setArm(armRest), 0.15, t -> robot.lift.setClaw(clawClosed), subsystems),
-                        new WaitCommand(0.15, t -> robot.lift.setArm(armBucket), subsystems)))
+                        new WaitCommand(0.25, t -> {
+                            robot.lift.setArm(armBucket);
+                            robot.intake.set(-0.5);}, subsystems),
+                        new WaitCommand(0.15, t -> robot.intake.set(0))))
                 .addTransition(robotStates.EXTEND, robotStates.EXTEND_GRAB, new WaitCommand(t ->
                         robot.lift.setArm(new ArmPosition(0, 0, robot.lift.armPos().wristRot)), 0.15, robot.lift))
                 .addTransition(robotStates.EXTEND_GRAB, robotStates.EXTEND, new WaitCommand(t ->
@@ -49,11 +52,9 @@ public class RobotStateMachine {
                             robot.lift.setArm(armFlick);
                         }, 0.25, subsystems),
                         new WaitCommand(t -> {
-                            robot.lift.setArm(armRest);
+                            robot.lift.setArm(armGrab);
                             robot.intake.set(1);}, 0.15, subsystems),
-                        new ParCommand(
-                            new WaitCommand(0.25, t -> robot.lift.setArm(armGrab)),
-                            robot.lift.goBack())))
+                        robot.lift.goBack()))
                 .addTransition(robotStates.GRABBED, robotStates.CHAMBER, a -> new ParCommand(
                     FnCommand.once(t -> robot.lift.setArm(armChamber)), 
                     robot.lift.goTo((LiftPosition)a[0])))
