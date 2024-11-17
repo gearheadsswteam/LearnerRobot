@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.teleop;
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.opMode;
-import static org.firstinspires.ftc.teamcode.hardware.Lift.ArmPosition.armZero;
+import static org.firstinspires.ftc.teamcode.hardware.Arm.ArmPosition.armZero;
 import static java.lang.Math.*;
 import com.outoftheboxrobotics.photoncore.Photon;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -16,23 +16,14 @@ import org.firstinspires.ftc.teamcode.command.RisingEdgeDetector;
 @Photon
 @TeleOp(name = "ServoTest")
 public class ServoTest extends CommandOpMode {
-    private ServoImplEx diffR;
-    private ServoImplEx diffL;
-    private ServoImplEx arm;
+    private Servo servo;
     private double pos;
     @Override
     public void initOpMode() {
-        arm = hardwareMap.get(ServoImplEx.class, "arm");
-        diffR = hardwareMap.get(ServoImplEx.class, "diffR");
-        diffL = hardwareMap.get(ServoImplEx.class, "diffL");
-        arm.setPwmRange(new PwmControl.PwmRange(500, 2500));
-        diffR.setPwmRange(new PwmControl.PwmRange(500, 2500));
-        diffL.setPwmRange(new PwmControl.PwmRange(500, 2500));
+        servo = hardwareMap.get(ServoImplEx.class, "ptoL");
         pos = 0.5;
-        arm.setPosition(armZero);
         Subsystem servoSubsystem = (t, b) -> {
-            diffR.setPosition(pos);
-            diffL.setPosition(pos);
+            servo.setPosition(pos);
             telemetry.addData("Position", pos);
         };
         register(servoSubsystem);

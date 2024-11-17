@@ -7,17 +7,13 @@ import com.outoftheboxrobotics.photoncore.Photon;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.command.CommandOpMode;
 import org.firstinspires.ftc.teamcode.command.FnCommand;
-import org.firstinspires.ftc.teamcode.command.Listener;
 import org.firstinspires.ftc.teamcode.command.RisingEdgeDetector;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
-import org.firstinspires.ftc.teamcode.hardware.RobotStateMachine;
 import org.firstinspires.ftc.teamcode.movement.Vec;
 @Photon
 @TeleOp(name = "TwoDriver")
 public class TeleopTwoDriver extends CommandOpMode {
     private Robot robot;
-    private RobotStateMachine.robotStates lastState = BUCKET;
-    private LiftPosition lastPos = liftHighBucket;
     private double grabRot = 0;
     @Override
     public void initOpMode() {
@@ -27,58 +23,49 @@ public class TeleopTwoDriver extends CommandOpMode {
                         FnCommand.once(t -> robot.drive.setHeading(0))),
                 RisingEdgeDetector.listen(() -> gamepad2.a, FnCommand.once(t -> {
                     if (robot.stateMachine.state() == INTAKE) {
-                        robot.stateMachine.transition(EXTEND);
+                        robot.stateMachine.transition(EXTEND, LiftPosition.inverse(new Vec(12, 0)), grabRot);
                     } else if (robot.stateMachine.state() == GRABBED || robot.stateMachine.state() == BUCKET) {
                         robot.stateMachine.transition(BUCKET, liftHighBucket);
-                        lastState = BUCKET;
-                        lastPos = liftHighBucket;
                     }})),
                 RisingEdgeDetector.listen(() -> gamepad2.b, FnCommand.once(t -> {
                     if (robot.stateMachine.state() == GRABBED || robot.stateMachine.state() == BUCKET) {
                         robot.stateMachine.transition(BUCKET, liftLowBucket);
-                        lastState = BUCKET;
-                        lastPos = liftLowBucket;
-                    }
-                })),
+                    }})),
                 RisingEdgeDetector.listen(() -> gamepad2.x, FnCommand.once(t -> {
-                    if (robot.stateMachine.state() == GRABBED || robot.stateMachine.state() == CHAMBER) {
-                        robot.stateMachine.transition(CHAMBER, liftHighChamber);
-                    }
-                })),
+                    if (robot.stateMachine.state() == GRABBED || robot.stateMachine.state() == SIDE_CHAMBER) {
+                        robot.stateMachine.transition(SIDE_CHAMBER, liftHighSideChamber);
+                    }})),
                 RisingEdgeDetector.listen(() -> gamepad2.y, FnCommand.once(t -> {
-                    if (robot.stateMachine.state() == GRABBED || robot.stateMachine.state() == CHAMBER) {
-                        robot.stateMachine.transition(CHAMBER, liftLowChamber);
-                    }
-                })),
+                    if (robot.stateMachine.state() == GRABBED || robot.stateMachine.state() == SIDE_CHAMBER) {
+                        robot.stateMachine.transition(SIDE_CHAMBER, liftLowSideChamber);
+                    }})),
                 RisingEdgeDetector.listen(() -> gamepad2.right_bumper, FnCommand.once(t -> {
                     if (robot.stateMachine.state() == INTAKE || robot.stateMachine.state() == EXTEND_GRAB) {
-                        grabRot = 0;
                         robot.stateMachine.transition(GRABBED);
                     } else if (robot.stateMachine.state() == EXTEND) {
                         robot.stateMachine.transition(EXTEND_GRAB);
                     } else if (robot.stateMachine.state() == GRABBED) {
                         robot.stateMachine.transition(SPECIMEN);
-                    } else if (robot.stateMachine.state() == BUCKET  || robot.stateMachine.state() == CHAMBER || robot.stateMachine.state() == SPECIMEN) {
+                    } else if (robot.stateMachine.state() == BUCKET  || robot.stateMachine.state() == SIDE_CHAMBER || robot.stateMachine.state() == SPECIMEN) {
                         robot.stateMachine.transition(INTAKE);
-                    }
-                })),
+                    }})),
                 RisingEdgeDetector.listen(() -> gamepad2.left_bumper, FnCommand.once(t -> {
-                    if (robot.stateMachine.state() == INTAKE || robot.stateMachine.state() == EXTEND_GRAB) {
+                    if (robot.stateMachine.state() == EXTEND_GRAB) {
                         robot.stateMachine.transition(EXTEND);
                     } else if (robot.stateMachine.state() == GRABBED) {
                         robot.stateMachine.transition(INTAKE);
-                    }
-                })),
-                new Listener(() -> new Vec(gamepad2.left_stick_x, gamepad2.left_stick_y).norm() > 0.5,
-                    FnCommand.once(t -> {
-                        if (new Vec(gamepad2.left_stick_x, gamepad2.left_stick_y).norm() > 0.5) {
-                            grabRot = atan2(-gamepad2.left_stick_x, -gamepad2.left_stick_y);
-                        }})));
+                    }})));
         schedule(FnCommand.repeat(t -> {
-            if (robot.stateMachine.state() == EXTEND) {
-                robot.lift.setGrab(grabRot - robot.drive.getHeading(), armUp, t);
-            } else if (robot.stateMachine.state() == EXTEND_GRAB) {
-                robot.lift.setGrab(grabRot - robot.drive.getHeading(), 0, t);
+            if (robot.stateMachine.state() == EXTEND || robot.stateMachine.state() == EXTEND_GRAB) {
+                robot.arm.setGrab(grabRot - robot.drive.getHeading(), robot.lift);
+                Vec pos = new Vec(-gamepad2.right_stick_y, /*-gamepad2.right_stick_x*/0);
+                if (pos.norm() > 0.05) {
+                    schedule(robot.lift.adjust(pos/*.rotate(-robot.drive.getHeading())*/.mult(pos.norm()), 0.05));
+                }
+            }
+            Vec ang = new Vec(-gamepad2.left_stick_y, -gamepad2.left_stick_x);
+            if (ang.norm() > 0.5) {
+                grabRot = ang.angle();
             }
             double f = gamepad1.right_trigger > 0.1 ? 0.25 : 1;
             Vec p = new Vec(-gamepad1.left_stick_y * f, -gamepad1.left_stick_x * f).rotate(-robot.drive.getHeading());

@@ -6,15 +6,18 @@ public class Robot {
     public final MecanumDrive drive;
     public final Intake intake;
     public final Lift lift;
+    public final Arm arm;
     public StateMachine<RobotStateMachine.robotStates> stateMachine;
     public Robot(CommandOpMode opMode, boolean auto) {
         drive = new MecanumDrive(opMode, auto);
         intake = new Intake(opMode, auto);
         lift = new Lift(opMode, auto);
-        stateMachine = RobotStateMachine.get(opMode, this, RobotStateMachine.robotStates.INTAKE);
-        opMode.register(drive, intake, lift);
-        lift.setArm(armGrab);
-        lift.setClaw(clawOpen);
-        intake.set(1);
+        arm = new Arm(opMode, auto);
+        if (auto) {
+            stateMachine = RobotStateMachine.get(opMode, this, RobotStateMachine.robotStates.GRABBED);
+        } else {
+            stateMachine = RobotStateMachine.get(opMode, this, RobotStateMachine.robotStates.INTAKE);
+        }
+        opMode.register(drive, intake, lift, arm);
     }
 }

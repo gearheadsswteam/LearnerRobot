@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import org.firstinspires.ftc.teamcode.control.AsymProfile.AsymConstraints;
 import org.firstinspires.ftc.teamcode.control.PidfCoefficients;
 import org.firstinspires.ftc.teamcode.control.PidfController;
-public abstract class AbstractMecanumDrive extends Drivetrain {
+public abstract class MecanumDrivetrain extends Drivetrain {
     protected DcMotorEx fr;
     protected DcMotorEx fl;
     protected DcMotorEx br;
@@ -17,7 +17,7 @@ public abstract class AbstractMecanumDrive extends Drivetrain {
     private PidfController xPid;
     private PidfController yPid;
     private PidfController turnPid;
-    public AbstractMecanumDrive(double trackWidth, double ks, double kv, double ka, double strafeMult, PidfCoefficients xCoeffs, PidfCoefficients yCoeffs, PidfCoefficients turnCoeffs, AsymConstraints moveConstraints, AsymConstraints turnConstraints, boolean auto) {
+    public MecanumDrivetrain(double trackWidth, double ks, double kv, double ka, double strafeMult, PidfCoefficients xCoeffs, PidfCoefficients yCoeffs, PidfCoefficients turnCoeffs, AsymConstraints moveConstraints, AsymConstraints turnConstraints, boolean auto) {
         super(auto, moveConstraints, turnConstraints);
         this.trackWidth = trackWidth;
         this.ks = ks;

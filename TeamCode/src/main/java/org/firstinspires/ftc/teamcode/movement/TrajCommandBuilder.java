@@ -3,6 +3,7 @@ import static java.lang.Double.NaN;
 import static java.lang.Double.isNaN;
 import static java.lang.Math.*;
 import org.firstinspires.ftc.teamcode.command.Command;
+import org.firstinspires.ftc.teamcode.command.FnCommand;
 import org.firstinspires.ftc.teamcode.command.Scheduler;
 import org.firstinspires.ftc.teamcode.control.AsymProfile.AsymConstraints;
 import java.util.ArrayList;
@@ -10,6 +11,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.DoubleConsumer;
+
 public class TrajCommandBuilder {
     private Drivetrain drive;
     private Pose pos;
@@ -153,6 +156,12 @@ public class TrajCommandBuilder {
     public TrajCommandBuilder splineTo(Vec end, double t, double v) {
         addTraj(new SplinePath(pos.vec(), tangent.mult(v), end, Vec.dir(t).mult(v)), NaN);
         return this;
+    }
+    public TrajCommandBuilder marker(DoubleConsumer fn) {
+        return marker(FnCommand.once(fn));
+    }
+    public TrajCommandBuilder marker(double scale, double offset, DoubleConsumer fn) {
+        return marker(scale, offset, FnCommand.once(fn));
     }
     public TrajCommandBuilder marker(Command command) {
         return marker(0, 0, command);

@@ -17,20 +17,19 @@ public class AsymProfile extends MotionProfile {
             return new AsymConstraints(vm * f, ai * f * f, af * f * f);
         }
     }
-    public static final double EPS = 1e-6;
     private AsymConstraints c;
     private MotionState f;
     private double t1;
     private double t2;
-    private int sgn;
+    private double sgn;
     public AsymProfile(AsymConstraints c, double ti, MotionState i, MotionState f) {
         this.c = c;
         this.ti = ti;
         this.i = i;
         this.f = f;
-        sgn = (f.x < i.x) ? -1 : 1;
+        sgn = signum(f.x - i.x);
         double v2 = Math.sqrt((2 * c.ai * c.af * abs(f.x - i.x) + c.af * i.v * i.v + c.ai * f.v * f.v) / (c.ai + c.af));
-        if (sgn == 1 && v2 + EPS < max(i.v, f.v) || sgn == -1 && -v2 - EPS > min(i.v, f.v)) {
+        if (sgn == 1 && v2 < max(i.v, f.v) || sgn == -1 && -v2 > min(i.v, f.v)) {
             throw new IllegalArgumentException("Impossible profile " + min(abs(v2 - max(i.v, f.v)), abs(v2 + min(i.v, f.v))));
         }
         if (v2 > c.vm) {
