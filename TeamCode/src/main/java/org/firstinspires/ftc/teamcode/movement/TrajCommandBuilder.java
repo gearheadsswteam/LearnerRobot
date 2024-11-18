@@ -201,7 +201,6 @@ public class TrajCommandBuilder {
                     moveConstraints, turnConstraints, vi, vf);
             trajs.add(traj);
             mTimes.add(new ArrayList<>());
-            System.out.println(Arrays.toString(traj.tfs()));
             for (int i = 0; i < scales.size(); i++) {
                 for (int j = 0; j < scales.get(i).size(); j++) {
                     mTimes.get(mTimes.size() - 1).add(times.get(times.size() - 1) + traj.tfs()[i] +

@@ -27,7 +27,7 @@ public class MecanumDrive extends MecanumDrivetrain {
     public static double xKp = 0.25;
     public static double xKi = 0;
     public static double xKd = 0;
-    public static double yKp = 0.5;
+    public static double yKp = 0.25;
     public static double yKi = 0;
     public static double yKd = 0;
     public static double turnKp = 2;

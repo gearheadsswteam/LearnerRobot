@@ -88,7 +88,7 @@ public class Lift implements Subsystem {
             MotionState liftState = (MotionState)a[1];
             return (liftKgs + liftKgd * liftState.x) * sin(pivotState.x) +
                     liftKs * signum(liftState.v) + liftKv * liftState.v + liftKa * liftState.a;});
-    public static double turretKp = 2;
+    public static double turretKp = 0.5;
     public static double turretKi = 2;
     public static double turretKd = 0;
     public static double turretKs = 0.1;
@@ -201,8 +201,11 @@ public class Lift implements Subsystem {
         }, t -> {}, (t, b) -> zeroTime = restTime(), t -> t > restTime(), this);
     }
     public Command specimen() {
-        return new FnCommand(t -> {liftProfile = AsymProfile.extendAsym(liftProfile, liftConstraints,
-                t, new MotionState(liftProfile.state(t).x - 4.5, 0));}, t -> {}, (t, b) -> {}, t -> t > restTime() + 0.15, this);
+        return new FnCommand(t -> {
+            turretPidf.setCoeffs(new PidfCoefficients(5, 0, 0, turretCoeffs.kf));
+            liftProfile = AsymProfile.extendAsym(liftProfile, liftConstraints,
+                t, new MotionState(liftProfile.state(t).x - 4.5, 0));}, t -> {},
+                (t, b) -> turretPidf.setCoeffs(turretCoeffs), t -> t > restTime() + 0.15, this);
     }
     public Command adjust(Vec v, double dt) {
         return FnCommand.once(t -> {

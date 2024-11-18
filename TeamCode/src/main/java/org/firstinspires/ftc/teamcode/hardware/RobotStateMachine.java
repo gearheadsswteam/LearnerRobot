@@ -46,7 +46,9 @@ public class RobotStateMachine {
                     robot.arm.setClaw(false);
                     robot.intake.set(0.375);}, 0.25, subsystems))
                 .addTransition(robotStates.GRABBED, robotStates.SPECIMEN, new ParCommand(
-                        FnCommand.once(t -> robot.intake.set(0.375), robot.intake),
+                        FnCommand.once(t -> {
+                            robot.intake.set(0.375);
+                        }, robot.intake),
                         robot.lift.goTo(liftSpecimen)))
                 .addTransition(robotStates.SPECIMEN, robotStates.INTAKE, new SeqCommand(
                         new WaitCommand(t -> robot.arm.setClaw(false), 0.25,
