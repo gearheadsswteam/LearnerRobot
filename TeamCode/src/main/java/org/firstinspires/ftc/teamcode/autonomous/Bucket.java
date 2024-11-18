@@ -46,14 +46,14 @@ public class Bucket extends AbstractAutonomous {
                     .pause(0.25)
                     .marker(t -> robot.stateMachine.transition(INTAKE))
                     .setTangent(-3*PI/4)
-                    .setVel(15)
+                    .setVel(10)
                     .splineTo(new Pose(48, 38, -PI/2), -PI/2)
                     .setMoveConstraints(grabConstraints)
                     .lineTo(intake1.vec())
                     .marker(1, -0.15, t -> robot.stateMachine.transition(GRABBED))
                     .setMoveConstraints(dropConstraints)
                     .lineTo(drop)
-                    .marker(0, 0.75, t -> robot.stateMachine.transition(BUCKET, liftHighBucket))
+                    .marker(0, 0.55, t -> robot.stateMachine.transition(BUCKET, liftHighBucket))
                     .build(scheduler);
             telemetry.addData("Configuration", "Bucket Sample");
         } else {
@@ -71,7 +71,7 @@ public class Bucket extends AbstractAutonomous {
                     .marker(1, -0.15, t -> robot.stateMachine.transition(GRABBED))
                     .setMoveConstraints(dropConstraints)
                     .lineTo(drop)
-                    .marker(0, 0.75, t -> robot.stateMachine.transition(BUCKET, liftHighBucket))
+                    .marker(0, 0.55, t -> robot.stateMachine.transition(BUCKET, liftHighBucket))
                     .build(scheduler);
             telemetry.addData("Configuration", "Bucket Specimen");
         }
@@ -80,7 +80,7 @@ public class Bucket extends AbstractAutonomous {
                 .marker(t -> robot.stateMachine.transition(INTAKE))
                 .setMoveConstraints(slowConstraints)
                 .setTangent(-1.5)
-                .setVel(15)
+                .setVel(10)
                 .splineTo(new Pose(58, 38, -PI/2), -PI/2)
                 .setMoveConstraints(grabConstraints)
                 .lineTo(intake2)
@@ -88,7 +88,7 @@ public class Bucket extends AbstractAutonomous {
                 .setTangent(PI/2)
                 .setMoveConstraints(dropConstraints)
                 .lineTo(drop)
-                .marker(0, 0.75, t -> robot.stateMachine.transition(BUCKET, liftHighBucket))
+                .marker(0, 0.55, t -> robot.stateMachine.transition(BUCKET, liftHighBucket))
                 .pause(0.25)
                 .marker(t -> robot.stateMachine.transition(INTAKE))
                 .setMoveConstraints(slowConstraints)
@@ -102,7 +102,7 @@ public class Bucket extends AbstractAutonomous {
                 .marker(1, -0.15, t -> robot.stateMachine.transition(GRABBED))
                 .setMoveConstraints(dropConstraints)
                 .lineTo(drop)
-                .marker(0, 0.75, t -> robot.stateMachine.transition(BUCKET, liftHighBucket))
+                .marker(0, 0.55, t -> robot.stateMachine.transition(BUCKET, liftHighBucket))
                 .pause(0.25)
                 .marker(t -> robot.stateMachine.transition(INTAKE))
                 .resetConstraints()

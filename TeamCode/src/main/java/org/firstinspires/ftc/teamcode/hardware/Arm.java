@@ -34,7 +34,7 @@ public class Arm implements Subsystem {
     public static final ArmPosition armRest = new ArmPosition(0, 0, 0);
     public static final ArmPosition armGrab = new ArmPosition(armUp, 0, 0);
     public static final ArmPosition armBucket = new ArmPosition(armUp, 1.10, 0);
-    public static final ArmPosition armSideChamber = new ArmPosition(0, 0, -1.31);
+    public static final ArmPosition armSideChamber = new ArmPosition(0, 0.52, -1.31);
     public static final ArmPosition armBackChamber = new ArmPosition(armUp, 2.79, 0);
     public static final ArmPosition armGrabbed = new ArmPosition(armUp, 1.89, 0);
     public static final double clawOpen = 0.08;
