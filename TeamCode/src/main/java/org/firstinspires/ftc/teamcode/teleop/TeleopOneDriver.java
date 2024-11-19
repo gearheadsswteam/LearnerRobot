@@ -54,6 +54,16 @@ public class TeleopOneDriver extends CommandOpMode {
                     robot.stateMachine.transition(EXTEND);
                 } else if (robot.stateMachine.state() == GRABBED) {
                     robot.stateMachine.transition(INTAKE);
+                }})),
+            RisingEdgeDetector.listen(() -> gamepad1.start, FnCommand.once(t -> {
+                if (robot.stateMachine.state() == INTAKE) {
+                    robot.stateMachine.transition(CLIMB);
+                } else if (robot.stateMachine.state() == CLIMB) {
+                    robot.stateMachine.transition(CLIMBED);
+                }})),
+            RisingEdgeDetector.listen(() -> gamepad1.back, FnCommand.once(t -> {
+                if (robot.stateMachine.state() == CLIMB) {
+                    robot.stateMachine.transition(INTAKE);
                 }})));
         schedule(FnCommand.repeat(t -> {
             if (robot.stateMachine.state() == EXTEND || robot.stateMachine.state() == EXTEND_GRAB) {
@@ -65,9 +75,9 @@ public class TeleopOneDriver extends CommandOpMode {
                     grabRot = ang.angle();
                 }
                 if (robot.stateMachine.state() == EXTEND || robot.stateMachine.state() == EXTEND_GRAB) {
-                    Vec pos = new Vec(-gamepad1.right_stick_y, -gamepad1.right_stick_x);
+                    Vec pos = new Vec(-gamepad1.right_stick_y, /*-gamepad1.right_stick_x*/0);
                     if (pos.norm() > 0.05) {
-                        schedule(robot.lift.adjust(pos.rotate(-robot.drive.getHeading()).mult(pos.norm()), 0.05));
+                        schedule(robot.lift.adjust(pos/*.rotate(-robot.drive.getHeading())*/.mult(pos.norm()), 0.05));
                     }
                 }
             } else {
@@ -80,6 +90,6 @@ public class TeleopOneDriver extends CommandOpMode {
                     robot.drive.setPowers(p, turn);
                 }
             }
-        }, robot.drive));
+        }, true, robot.drive));
     }
 }

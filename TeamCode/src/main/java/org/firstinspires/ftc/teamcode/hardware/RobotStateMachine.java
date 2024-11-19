@@ -87,7 +87,28 @@ public class RobotStateMachine {
                         new WaitCommand(t -> robot.arm.setClaw(false), 0.15, t -> {
                             robot.arm.setArm(armGrab);
                             robot.intake.set(0.375);}, subsystems),
-                        robot.lift.goBack()));
+                        robot.lift.goBack()))
+                .addTransition(robotStates.INTAKE, robotStates.CLIMB, new ParCommand(
+                        FnCommand.once(t -> {
+                            robot.arm.setArm(armRest);
+                            robot.intake.set(0);}),
+                        robot.lift.goTo(climb1)))
+                .addTransition(robotStates.CLIMB, robotStates.INTAKE, new ParCommand(
+                        FnCommand.once(t -> {
+                            robot.arm.setArm(armGrab);
+                            robot.intake.set(0.375);}),
+                        robot.lift.goBack()))
+                .addTransition(robotStates.CLIMB, robotStates.CLIMBED, new SeqCommand(
+                        new ParCommand(
+                                robot.lift.goTo(climb2),
+                                FnCommand.once(t -> robot.drive.setPto(true), robot.drive)),
+                        robot.lift.climb(robot.drive),
+                        robot.lift.goTo(climb3),
+                        new WaitCommand(0.25),
+                        new ParCommand(
+                                robot.lift.goTo(climb4),
+                                FnCommand.once(t -> robot.drive.setPto(false), robot.drive)),
+                        FnCommand.once(t -> opMode.end())));
         return builder.build(state);
     }
 }

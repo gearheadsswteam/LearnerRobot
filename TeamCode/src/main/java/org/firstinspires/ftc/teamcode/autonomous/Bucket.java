@@ -5,6 +5,7 @@ import static org.firstinspires.ftc.teamcode.hardware.Lift.*;
 import com.outoftheboxrobotics.photoncore.Photon;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import org.firstinspires.ftc.teamcode.command.Command;
+import org.firstinspires.ftc.teamcode.command.FnCommand;
 import org.firstinspires.ftc.teamcode.command.SeqCommand;
 import org.firstinspires.ftc.teamcode.control.AsymProfile.AsymConstraints;
 import org.firstinspires.ftc.teamcode.movement.Pose;
@@ -15,13 +16,13 @@ import org.firstinspires.ftc.teamcode.movement.Vec;
 @Autonomous(name = "Bucket")
 public class Bucket extends AbstractAutonomous {
     private AsymConstraints slowConstraints = new AsymConstraints(45, 60, 40);
-    private AsymConstraints dropConstraints = new AsymConstraints(30, 40, 30);
+    private AsymConstraints dropConstraints = new AsymConstraints(30, 40, 40);
     private AsymConstraints grabConstraints = new AsymConstraints(10, 30, 30);
     private Pose start;
     private Pose drop = new Pose(56, 56, -3*PI/4);
     private Pose specimen = new Pose(11, 31, PI/2);
     private Pose intake1 = new Pose(48, 28, -PI/2);
-    private Pose intake2 = new Pose(59, 28, -PI/2);
+    private Pose intake2 = new Pose(58.5, 28, -PI/2);
     private Pose intake3 = new Pose(64, 18, 0);
     private Pose park = new Pose(24, 12, -PI);
     private int config = 0;
@@ -108,9 +109,8 @@ public class Bucket extends AbstractAutonomous {
                 .resetConstraints()
                 .splineTo(park.vec(), PI)
                 .pause(2)
-                .marker(1, 0, t -> end())
                 .build(scheduler);
-        scheduler.schedule(new SeqCommand(traj1, traj2));
+        scheduler.schedule(new SeqCommand(traj1, traj2, FnCommand.once(t -> end())));
         robot.drive.setPose(start);
     }
 }

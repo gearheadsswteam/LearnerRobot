@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.movement.TrajCommandBuilder;
 import org.firstinspires.ftc.teamcode.movement.TrajectoryState;
 @Config
 @Photon
+@Disabled
 @Autonomous(name = "TurnTest")
 public class TurnTest extends CommandOpMode {
     public static double ang = PI;

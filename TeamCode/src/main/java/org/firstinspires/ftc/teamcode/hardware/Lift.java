@@ -18,6 +18,7 @@ import org.firstinspires.ftc.teamcode.control.MotionState;
 import org.firstinspires.ftc.teamcode.control.PidfCoefficients;
 import org.firstinspires.ftc.teamcode.control.PidfController;
 import org.firstinspires.ftc.teamcode.control.RampProfile;
+import org.firstinspires.ftc.teamcode.movement.MecanumDrivetrain;
 import org.firstinspires.ftc.teamcode.movement.Vec;
 
 @Config
@@ -51,6 +52,7 @@ public class Lift implements Subsystem {
             return new LiftPosition(liftExt, turretAng, pivotAng);
         }
     }
+    public static final double liftToDrive = 1.66;
     public static final double liftXMin = 5.5;
     public static final double liftXMax = 24;
     public static final double liftYMax = 5.5;
@@ -61,6 +63,10 @@ public class Lift implements Subsystem {
     public static final LiftPosition liftLowSideChamber = new LiftPosition(6, PI/2, pivotUp);
     public static final LiftPosition liftHighSideChamber = new LiftPosition(19, PI/2, pivotUp);
     public static final LiftPosition liftHighBackChamber = new LiftPosition(13, 0, pivotUp);
+    public static final LiftPosition climb1 = new LiftPosition(17.5, 0, pivotUp);
+    public static final LiftPosition climb2 = new LiftPosition(16, 0, pivotUp);
+    public static final LiftPosition climb3 = new LiftPosition(7, 0, pivotUp);
+    public static final LiftPosition climb4 = new LiftPosition(9, 0, pivotUp);
     public static double pivotKp = 5;
     public static double pivotKi = 0;
     public static double pivotKd = 0;
@@ -88,6 +94,7 @@ public class Lift implements Subsystem {
             MotionState liftState = (MotionState)a[1];
             return (liftKgs + liftKgd * liftState.x) * sin(pivotState.x) +
                     liftKs * signum(liftState.v) + liftKv * liftState.v + liftKa * liftState.a;});
+    public static final PidfCoefficients climbCoeffs = new PidfCoefficients(0.25, 0.25, 0);
     public static double turretKp = 0.5;
     public static double turretKi = 2;
     public static double turretKd = 0;
@@ -107,6 +114,7 @@ public class Lift implements Subsystem {
     public static double liftAi = 750;
     public static double liftAf = 200;
     public static final AsymConstraints liftConstraints = new AsymConstraints(liftVm, liftAi, liftAf);
+    public static final AsymConstraints climbConstraints = new AsymConstraints(15, 30, 30);
     public static double turretVm = 20;
     public static double turretAi = 100;
     public static double turretAf = 50;
@@ -115,6 +123,7 @@ public class Lift implements Subsystem {
     private DcMotorEx pivot;
     private DcMotorEx liftR;
     private DcMotorEx liftL;
+    private MecanumDrive drive;
     private PidfController pivotPidf = new PidfController(pivotCoeffs);
     private PidfController liftPidf = new PidfController(liftCoeffs);
     private PidfController turretPidf = new PidfController(turretCoeffs);
@@ -125,6 +134,7 @@ public class Lift implements Subsystem {
     private static double liftROffset = 0;
     private static double liftLOffset = 0;
     private double zeroTime;
+    private boolean climbing = false;
     public Lift(CommandOpMode opMode, boolean auto) {
         pivot = opMode.hardwareMap.get(DcMotorEx.class, "pivot");
         liftR = opMode.hardwareMap.get(DcMotorEx.class, "liftR");
@@ -163,15 +173,16 @@ public class Lift implements Subsystem {
                 zeroTime = Double.NaN;
                 reset(0);
             }
+            AsymConstraints constraints = climbing ? climbConstraints : liftConstraints;
             if (pivotProfile.state(t).x == pos.pivotAng) {
-                liftProfile = AsymProfile.extendAsym(liftProfile, liftConstraints,
+                liftProfile = AsymProfile.extendAsym(liftProfile, constraints,
                         t, new MotionState(pos.liftExt, 0));
                 turretProfile = AsymProfile.extendAsym(turretProfile, turretConstraints,
                         liftProfile.tf(), new MotionState(pos.turretAng, 0));
             } else {
                 pivotProfile = AsymProfile.extendAsym(pivotProfile, pivotConstraints,
                         t, new MotionState(pos.pivotAng, 0));
-                liftProfile = AsymProfile.extendAsym(liftProfile, liftConstraints,
+                liftProfile = AsymProfile.extendAsym(liftProfile, constraints,
                         t + 0.15, new MotionState(pos.liftExt, 0));
                 turretProfile = AsymProfile.extendAsym(turretProfile, turretConstraints,
                         liftProfile.tf(), new MotionState(pos.turretAng, 0));
@@ -202,10 +213,10 @@ public class Lift implements Subsystem {
     }
     public Command specimen() {
         return new FnCommand(t -> {
-            turretPidf.setCoeffs(new PidfCoefficients(5, 0, 0, turretCoeffs.kf));
+            turretPidf.setCoeffs(new PidfCoefficients(5, 0, 0));
             liftProfile = AsymProfile.extendAsym(liftProfile, liftConstraints,
                 t, new MotionState(liftProfile.state(t).x - 4.5, 0));}, t -> {},
-                (t, b) -> turretPidf.setCoeffs(turretCoeffs), t -> t > restTime() + 0.15, this);
+                (t, b) -> turretPidf.setCoeffs(turretCoeffs), t -> t > restTime(), this);
     }
     public Command adjust(Vec v, double dt) {
         return FnCommand.once(t -> {
@@ -217,6 +228,14 @@ public class Lift implements Subsystem {
             liftProfile = RampProfile.extendRamp(liftProfile, t, new MotionState(posN.liftExt, 0), dt);
             turretProfile = RampProfile.extendRamp(turretProfile, t, new MotionState(posN.turretAng, 0), dt);
         }, this);
+    }
+    public Command climb(MecanumDrive drive) {
+        return FnCommand.once(t -> {
+            this.drive = drive;
+            climbing = true;
+            liftPidf.setCoeffs(climbCoeffs);
+            liftPidf.reset(t);
+        });
     }
     @Override
     public void update(double t, boolean active) {
@@ -244,8 +263,14 @@ public class Lift implements Subsystem {
             liftPidf.update(t, pos.liftExt, pivotState, liftState);
             turretPidf.update(t, pos.turretAng, turretState);
             pivot.setPower(pivotPidf.get());
-            liftR.setPower(liftPidf.get() + turretPidf.get());
-            liftL.setPower(liftPidf.get() - turretPidf.get());
+            if (climbing) {
+                liftR.setPower(liftPidf.get());
+                liftL.setPower(liftPidf.get());
+                drive.setPowers(new Vec(-liftPidf.get() * liftToDrive, 0), 0);
+            } else {
+                liftR.setPower(liftPidf.get() + turretPidf.get());
+                liftL.setPower(liftPidf.get() - turretPidf.get());
+            }
         }
     }
 }

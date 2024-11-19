@@ -16,6 +16,7 @@ import org.firstinspires.ftc.teamcode.movement.TrajectoryState;
 import org.firstinspires.ftc.teamcode.movement.Vec;
 @Config
 @Photon
+@Disabled
 @Autonomous(name = "ForwardsTest")
 public class ForwardsTest extends CommandOpMode {
     public static double dist = 96;

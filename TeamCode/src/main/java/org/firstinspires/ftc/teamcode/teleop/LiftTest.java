@@ -5,6 +5,7 @@ import com.outoftheboxrobotics.photoncore.Photon;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.lynx.LynxNackException;
 import com.qualcomm.hardware.lynx.commands.core.LynxResetMotorEncoderCommand;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -22,6 +23,7 @@ import org.firstinspires.ftc.teamcode.control.PidfCoefficients;
 import org.firstinspires.ftc.teamcode.control.PidfController;
 
 @Photon
+@Disabled
 @TeleOp(name = "LiftTest")
 public class LiftTest extends CommandOpMode {
     private LynxModule exhub;
