@@ -18,7 +18,7 @@ public class TeleopOneDriver extends CommandOpMode {
     @Override
     public void initOpMode() {
         robot = new Robot(this, false);
-        robot.drive.setHeading(lastPose.h + (lastSide == Side.BLUE ? PI/2 : -PI/2));
+        robot.drive.setHeading(lastPose.h + (lastSide == Side.BLUE ? 1 : -1) * PI/2);
         scheduler.addListener(RisingEdgeDetector.listen(() -> gamepad1.ps, t -> robot.drive.setHeading(0)),
             RisingEdgeDetector.listen(() -> gamepad1.a, t -> {
                 if (robot.stateMachine.state() == GRABBED || robot.stateMachine.state() == BUCKET) {

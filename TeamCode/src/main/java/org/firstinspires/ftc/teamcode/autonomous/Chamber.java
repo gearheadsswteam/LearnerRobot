@@ -23,7 +23,7 @@ public class Chamber extends AbstractAutonomous {
     private Pose start = new Pose(-6.5, 63, PI/2);
     private Pose specimen1 = new Pose(-6.5, 31, PI/2);
     private Pose specimen2 = new Pose(-4, 30, 5*PI/6);
-    private Pose sample1 = new Pose(-31.5, 41, 5*PI/4);
+    private Pose sample1 = new Pose(-32, 41, 5*PI/4);
     private Pose sample2 = new Pose(-42.5, 41, 5*PI/4);
     private Pose sample3 = new Pose(-53, 41, 5*PI/4);
     private Pose drop1 = new Pose(-31.5, 44, 5*PI/6);
@@ -50,8 +50,8 @@ public class Chamber extends AbstractAutonomous {
                             robot.intake.set(0);}),
                         robot.lift.goTo(liftPush1)
                 ))
-                .marker(1, -0.1, t -> robot.arm.setArm(armPushDown))
-                .pause(0.15)
+                .pause(0.25)
+                .marker(t -> robot.arm.setArm(armPushDown))
                 .setTurnConstraints(pushTurnConstraints)
                 .lineTo(drop1)
                 .marker(robot.lift.goTo(liftPush2))
@@ -59,18 +59,19 @@ public class Chamber extends AbstractAutonomous {
                 .lineTo(sample2)
                 .marker(robot.lift.goTo(liftPush3))
                 .marker(1, -0.5, robot.lift.goTo(liftPush1))
-                .marker(1, -0.1, t -> robot.arm.setArm(armPushDown))
-                .pause(0.15)
+                .pause(0.25)
+                .marker(t -> robot.arm.setArm(armPushDown))
                 .lineTo(drop2)
                 .marker(robot.lift.goTo(liftPush2))
                 .marker(1, -0.15, t -> robot.arm.setArm(armPushUp))
                 .lineTo(sample3)
                 .marker(robot.lift.goTo(liftPush3))
                 .marker(1, -0.5, robot.lift.goTo(liftPush1))
-                .marker(1, -0.15, t -> robot.arm.setArm(armPushDown))
-                .marker(1, 0, robot.lift.goTo(liftPush2))
+                .pause(0.25)
+                .marker(t -> robot.arm.setArm(armPushDown))
                 .setTangent(0)
                 .splineTo(preIntake, PI/2)
+                .marker(robot.lift.goTo(liftPush2))
                 .setMoveConstraints(intakeConstraints)
                 .lineTo(intake.vec())
                 .marker(new ParCommand(

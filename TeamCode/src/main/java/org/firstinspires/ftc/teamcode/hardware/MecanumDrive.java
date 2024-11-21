@@ -44,7 +44,7 @@ public class MecanumDrive extends MecanumDrivetrain {
     private Servo ptoR;
     private Servo ptoL;
     private Otos otos;
-    private double heading = 0;
+    private double heading;
     private double headingOffset = 0;
     public MecanumDrive(CommandOpMode opMode, boolean auto) {
         super(trackWidth, driveKs, driveKv, driveKa, strafeMult, new PidfCoefficients(xKp, xKi, xKd),
@@ -76,6 +76,7 @@ public class MecanumDrive extends MecanumDrivetrain {
         if (auto) {
             localizer = new OtosLocalizer(otos);
         } else {
+            heading = otos.getPosition().h;
             opMode.schedule(new RepeatCommand(new WaitCommand(t -> heading = otos.getPosition().h, 0.1)));
         }
         setPto(false);
@@ -85,9 +86,9 @@ public class MecanumDrive extends MecanumDrivetrain {
         ptoL.setPosition(down ? ptoLDown : ptoLUp);
     }
     public void setHeading(double h) {
-        headingOffset = h - heading;
+        headingOffset = heading - h;
     }
     public double getHeading() {
-        return headingOffset + heading;
+        return heading - headingOffset;
     }
 }

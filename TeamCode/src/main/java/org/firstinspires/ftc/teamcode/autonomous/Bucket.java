@@ -108,7 +108,6 @@ public class Bucket extends AbstractAutonomous {
                 .marker(t -> robot.stateMachine.transition(INTAKE))
                 .resetConstraints()
                 .splineTo(park.vec(), PI)
-                .pause(2)
                 .build(scheduler);
         scheduler.schedule(new SeqCommand(traj1, traj2, FnCommand.once(t -> end())));
         robot.drive.setPose(start);
