@@ -10,7 +10,7 @@ public class TurnTrajectory implements Trajectory {
     private MotionProfile profile;
     public TurnTrajectory(AsymConstraints constraints, Pose pos, double h) {
         this.pos = pos.vec();
-        profile = new AsymProfile(constraints, ti, new MotionState(pos.h, 0), new MotionState(h, 0));
+        profile = new AsymProfile(constraints, ti, new MotionState(pos.h), new MotionState(h));
     }
     @Override
     public TrajectoryState state(double t) {

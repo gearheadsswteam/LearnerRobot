@@ -11,4 +11,7 @@ public class MotionState {
     public MotionState(double x, double v) {
         this(x, v, 0);
     }
+    public MotionState(double x) {
+        this(x, 0, 0);
+    }
 }

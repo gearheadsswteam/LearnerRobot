@@ -17,14 +17,14 @@ import org.firstinspires.ftc.teamcode.movement.TrajCommandBuilder;
 @Autonomous(name = "Chamber")
 public class Chamber extends AbstractAutonomous {
     private AsymConstraints intakeConstraints = new AsymConstraints(10, 30, 30);
-    private AsymConstraints pushConstraints = new AsymConstraints(30, 30, 30);
+    private AsymConstraints pushConstraints = new AsymConstraints(30, 40, 40);
     private AsymConstraints slowConstraints = new AsymConstraints(40, 50, 50);
     private AsymConstraints pushTurnConstraints = new AsymConstraints(4, 8, 4);
     private Pose start = new Pose(-6.5, 63, PI/2);
     private Pose specimen1 = new Pose(-6.5, 31, PI/2);
     private Pose specimen2 = new Pose(-4, 30, 5*PI/6);
     private Pose sample1 = new Pose(-31.5, 41, 5*PI/4);
-    private Pose sample2 = new Pose(-42, 41, 5*PI/4);
+    private Pose sample2 = new Pose(-42.5, 41, 5*PI/4);
     private Pose sample3 = new Pose(-53, 41, 5*PI/4);
     private Pose drop1 = new Pose(-31.5, 44, 5*PI/6);
     private Pose drop2 = new Pose(-42, 44, 5*PI/6);
@@ -43,13 +43,15 @@ public class Chamber extends AbstractAutonomous {
                 .marker(1, -0.15, t -> robot.stateMachine.transition(INTAKE))
                 .setMoveConstraints(pushConstraints)
                 .splineTo(sample1, sample1.h)
-                .marker(0, 1.25, new ParCommand(
+                .marker(0, 1.1, new ParCommand(
                         FnCommand.once(t -> {
                             robot.arm.setArm(armPushUp);
-                            robot.arm.setClaw(true);}),
+                            robot.arm.setClaw(true);
+                            robot.intake.set(0);}),
                         robot.lift.goTo(liftPush1)
                 ))
-                .marker(1, -0.15, t -> robot.arm.setArm(armPushDown))
+                .marker(1, -0.1, t -> robot.arm.setArm(armPushDown))
+                .pause(0.15)
                 .setTurnConstraints(pushTurnConstraints)
                 .lineTo(drop1)
                 .marker(robot.lift.goTo(liftPush2))
@@ -57,7 +59,8 @@ public class Chamber extends AbstractAutonomous {
                 .lineTo(sample2)
                 .marker(robot.lift.goTo(liftPush3))
                 .marker(1, -0.5, robot.lift.goTo(liftPush1))
-                .marker(1, -0.15, t -> robot.arm.setArm(armPushDown))
+                .marker(1, -0.1, t -> robot.arm.setArm(armPushDown))
+                .pause(0.15)
                 .lineTo(drop2)
                 .marker(robot.lift.goTo(liftPush2))
                 .marker(1, -0.15, t -> robot.arm.setArm(armPushUp))
@@ -73,7 +76,8 @@ public class Chamber extends AbstractAutonomous {
                 .marker(new ParCommand(
                         FnCommand.once(t -> {
                             robot.arm.setArm(armGrab);
-                            robot.arm.setClaw(false);}),
+                            robot.arm.setClaw(false);
+                            robot.intake.set(0.375);}),
                         robot.lift.goBack()))
                 .marker(1, -0.15, t -> robot.stateMachine.transition(GRABBED))
                 .build(scheduler);

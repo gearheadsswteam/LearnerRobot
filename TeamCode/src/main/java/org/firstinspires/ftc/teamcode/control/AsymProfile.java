@@ -46,15 +46,15 @@ public class AsymProfile extends MotionProfile {
     @Override
     public MotionState state(double t) {
         if (t < ti) {
-            return new MotionState(i.x + i.v * (t - ti), i.v, 0);
+            return new MotionState(i.x + i.v * (t - ti), i.v);
         } else if (t < t1) {
             return new MotionState(i.x + i.v * (t - ti) + sgn * c.ai * (t - ti) * (t - ti) / 2, i.v + sgn * c.ai * (t - ti), sgn * c.ai);
         } else if (t < t2) {
-            return new MotionState(i.x + i.v * (t1 - ti) + sgn * c.ai * (t1 - ti) * (t1 - ti) / 2 + sgn * c.vm * (t - t1), sgn * c.vm,0);
+            return new MotionState(i.x + i.v * (t1 - ti) + sgn * c.ai * (t1 - ti) * (t1 - ti) / 2 + sgn * c.vm * (t - t1), sgn * c.vm);
         } else if (t < tf) {
             return new MotionState(f.x + f.v * (t - tf) - sgn * c.af * (t - tf) * (t - tf) / 2, f.v - sgn * c.af * (t - tf), -sgn * c.af);
         }
-        return new MotionState(f.x + f.v * (t - tf), f.v, 0);
+        return new MotionState(f.x + f.v * (t - tf), f.v);
     }
     public static AsymProfile extendAsym(MotionProfile p, AsymConstraints c, double ti, MotionState f) {
         return new AsymProfile(c, ti, p.state(ti), f);

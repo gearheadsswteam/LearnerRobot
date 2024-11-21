@@ -9,11 +9,11 @@ public class RampProfile extends MotionProfile {
     }
     public MotionState state(double t) {
         if (t < ti) {
-            return new MotionState(i.x, 0);
+            return new MotionState(i.x);
         } else if (t < tf) {
             return new MotionState(i.x + (f.x - i.x) * (t - ti) / (tf - ti), (f.x - i.x) / (tf - ti));
         }
-        return new MotionState(f.x, 0);
+        return new MotionState(f.x);
     }
     public static RampProfile extendRamp(MotionProfile p, double ti, MotionState f, double dt) {
         return new RampProfile(ti, p.state(ti), f, dt);

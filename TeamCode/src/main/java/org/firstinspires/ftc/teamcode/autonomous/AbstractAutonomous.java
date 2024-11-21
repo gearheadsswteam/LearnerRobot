@@ -5,7 +5,7 @@ import org.firstinspires.ftc.teamcode.hardware.Robot;
 
 public abstract class AbstractAutonomous extends CommandOpMode {
     protected Robot robot;
-    protected Side side;
+    protected Side side = Side.BLUE;
     public abstract void initAutonomous();
     @Override
     public void initOpMode() {

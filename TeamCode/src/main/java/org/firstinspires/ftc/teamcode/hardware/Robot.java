@@ -11,13 +11,12 @@ public class Robot {
     public Robot(CommandOpMode opMode, boolean auto) {
         drive = new MecanumDrive(opMode, auto);
         intake = new Intake(opMode, auto);
-        lift = new Lift(opMode, auto);
+        lift = new Lift(drive, opMode, auto);
         arm = new Arm(opMode, auto);
         if (auto) {
             stateMachine = RobotStateMachine.get(opMode, this, RobotStateMachine.robotStates.GRABBED);
         } else {
             stateMachine = RobotStateMachine.get(opMode, this, RobotStateMachine.robotStates.INTAKE);
         }
-        opMode.register(drive, intake, lift, arm);
     }
 }

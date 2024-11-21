@@ -25,12 +25,12 @@ public class PathTrajectory implements Trajectory {
                 hs[i + 1] = hs[i] + paths[i].state(1).dir.angle() - paths[i].state(0).dir.angle();
             } else {
                 turnProfiles[i] = new AsymProfile(turnConstraints, 0,
-                        new MotionState(hs[i], 0), new MotionState(hs[i + 1], 0));
+                        new MotionState(hs[i]), new MotionState(hs[i + 1]));
             }
         }
         len = lens[paths.length];
         moveProfile = new AsymProfile(moveConstraints, 0,
-                new MotionState(0, vi, 0), new MotionState(len, vf, 0));
+                new MotionState(0, vi), new MotionState(len, vf));
         double[] fs = new double[paths.length];
         double max = 1;
         for (int i = 0; i < paths.length; i++) {
@@ -46,7 +46,7 @@ public class PathTrajectory implements Trajectory {
             tfs[i + 1] = t(lens[i + 1]);
             if (fs[i] != 0) {
                 turnProfiles[i] = new AsymProfile(turnConstraints.scaleT(fs[i] / max), tfs[i],
-                        new MotionState(hs[i], 0), new MotionState(hs[i + 1], 0));
+                        new MotionState(hs[i]), new MotionState(hs[i + 1]));
             }
         }
     }

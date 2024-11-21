@@ -44,9 +44,10 @@ public class Arm implements Subsystem {
     private ServoImplEx diffR;
     private ServoImplEx diffL;
     private Servo claw;
-    private ArmPosition armPos = armGrab;
+    private ArmPosition armPos = null;
     private boolean wristFlipped = false;
     public Arm(CommandOpMode opMode, boolean auto) {
+        opMode.register(this);
         arm = opMode.hardwareMap.get(ServoImplEx.class, "arm");
         diffR = opMode.hardwareMap.get(ServoImplEx.class, "diffR");
         diffL = opMode.hardwareMap.get(ServoImplEx.class, "diffL");
@@ -56,10 +57,11 @@ public class Arm implements Subsystem {
         diffL.setPwmRange(new PwmControl.PwmRange(500, 2500));
         if (auto) {
             armPos = armBucket;
-            opMode.schedule(FnCommand.once(t -> setClaw(true)));
+            opMode.schedule(FnCommand.once(t -> setClaw(true), this));
         } else {
-            armPos = armGrab;
-            setClaw(false);
+            opMode.schedule(FnCommand.once(t -> {
+                armPos = armGrab;
+                setClaw(false);}, this));
         }
     }
     public void setArm(ArmPosition pos) {
@@ -85,8 +87,10 @@ public class Arm implements Subsystem {
         }
     }
     public void update(double t, boolean active) {
-        arm.setPosition(armPos.armPos);
-        diffR.setPosition(armPos.diffRPos);
-        diffL.setPosition(armPos.diffLPos);
+        if (armPos != null) {
+            arm.setPosition(armPos.armPos);
+            diffR.setPosition(armPos.diffRPos);
+            diffL.setPosition(armPos.diffLPos);
+        }
     }
 }

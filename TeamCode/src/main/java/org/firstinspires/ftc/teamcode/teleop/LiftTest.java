@@ -46,15 +46,12 @@ public class LiftTest extends CommandOpMode {
             turretKp, turretKi, turretKd, a -> {
         MotionState turretState = (MotionState)a[0];
         return turretKs * signum(turretState.v) + turretKv * turretState.v + turretKa * turretState.a;});
-    private AsymConstraints pivotConstraints = new AsymConstraints(pivotVm, pivotAi, pivotAf);
-    private AsymConstraints liftConstraints = new AsymConstraints(liftVm, liftAi, liftAf);
-    private AsymConstraints turretConstraints = new AsymConstraints(turretVm, turretAi, turretAf);
     private PidfController pivotPidf = new PidfController(pivotCoeffs);
     private PidfController liftPidf = new PidfController(liftCoeffs);
     private PidfController turretPidf = new PidfController(turretCoeffs);
-    private MotionProfile pivotProfile = new DelayProfile(0, new MotionState(0, 0), 0);
-    private MotionProfile liftProfile = new DelayProfile(0, new MotionState(0, 0), 0);
-    private MotionProfile turretProfile = new DelayProfile(0, new MotionState(0, 0), 0);
+    private MotionProfile pivotProfile = new DelayProfile(0, new MotionState(0), 0);
+    private MotionProfile liftProfile = new DelayProfile(0, new MotionState(0), 0);
+    private MotionProfile turretProfile = new DelayProfile(0, new MotionState(0), 0);
     private boolean liftOut = false;
     private boolean pivotOut = false;
     @Override
@@ -99,10 +96,10 @@ public class LiftTest extends CommandOpMode {
                 if (t > max(pivotProfile.tf(), liftProfile.tf()) && !pivotOut) {
                     if (liftOut) {
                         liftProfile = AsymProfile.extendAsym(liftProfile,
-                                new AsymConstraints(liftVm, liftAi, liftAf), t, new MotionState(0, 0));
+                                new AsymConstraints(liftVm, liftAi, liftAf), t, new MotionState(0));
                     } else {
                         liftProfile = AsymProfile.extendAsym(liftProfile,
-                                new AsymConstraints(liftVm, liftAi, liftAf), t, new MotionState(liftXMax, 0));
+                                new AsymConstraints(liftVm, liftAi, liftAf), t, new MotionState(liftXMax));
                     }
                     liftOut = !liftOut;
                 }})),
@@ -110,14 +107,14 @@ public class LiftTest extends CommandOpMode {
                 if (t > max(pivotProfile.tf(), liftProfile.tf()) && !liftOut) {
                     if (pivotOut) {
                         liftProfile = AsymProfile.extendAsym(liftProfile,
-                                new AsymConstraints(liftVm, liftAi, liftAf), t, new MotionState(0, 0));
+                                new AsymConstraints(liftVm, liftAi, liftAf), t, new MotionState(0));
                         pivotProfile = AsymProfile.extendAsym(pivotProfile,
-                                new AsymConstraints(pivotVm, pivotAi, pivotAf), t + 0.15, new MotionState(0, 0));
+                                new AsymConstraints(pivotVm, pivotAi, pivotAf), t + 0.15, new MotionState(0));
                     } else {
                         pivotProfile = AsymProfile.extendAsym(pivotProfile,
-                                new AsymConstraints(pivotVm, pivotAi, pivotAf), t, new MotionState(liftHighBucket.pivotAng, 0));
+                                new AsymConstraints(pivotVm, pivotAi, pivotAf), t, new MotionState(liftHighBucket.pivotAng));
                         liftProfile = AsymProfile.extendAsym(liftProfile,
-                                new AsymConstraints(liftVm, liftAi, liftAf), t + 0.15, new MotionState(liftHighBucket.liftExt, 0));
+                                new AsymConstraints(liftVm, liftAi, liftAf), t + 0.15, new MotionState(liftHighBucket.liftExt));
                     }
                     pivotOut = !pivotOut;
                 }})));

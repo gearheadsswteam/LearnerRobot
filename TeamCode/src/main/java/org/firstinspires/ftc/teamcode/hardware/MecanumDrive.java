@@ -1,4 +1,6 @@
 package org.firstinspires.ftc.teamcode.hardware;
+import static org.firstinspires.ftc.teamcode.hardware.ValueStorage.*;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -47,6 +49,7 @@ public class MecanumDrive extends MecanumDrivetrain {
     public MecanumDrive(CommandOpMode opMode, boolean auto) {
         super(trackWidth, driveKs, driveKv, driveKa, strafeMult, new PidfCoefficients(xKp, xKi, xKd),
                 new PidfCoefficients(yKp, yKi, yKd), new PidfCoefficients(turnKp, turnKi, turnKd), moveConstraints, turnConstraints, auto);
+        opMode.register(this);
         fr = opMode.hardwareMap.get(DcMotorEx.class, "fr");
         fl = opMode.hardwareMap.get(DcMotorEx.class, "fl");
         br = opMode.hardwareMap.get(DcMotorEx.class, "br");
@@ -65,11 +68,15 @@ public class MecanumDrive extends MecanumDrivetrain {
         otos.setOffset(otosOffset);
         otos.setLinearScalar(linScalar);
         otos.setAngularScalar(angScalar);
+        telemetry.addLine("Calibrating");
+        telemetry.update();
         otos.calibrateImu(255, true);
+        telemetry.addLine("Calibrated");
+        telemetry.update();
         if (auto) {
             localizer = new OtosLocalizer(otos);
         } else {
-            opMode.schedule(new RepeatCommand(new WaitCommand(t -> heading = otos.getPosition().h, 0.2)));
+            opMode.schedule(new RepeatCommand(new WaitCommand(t -> heading = otos.getPosition().h, 0.1)));
         }
         setPto(false);
     }

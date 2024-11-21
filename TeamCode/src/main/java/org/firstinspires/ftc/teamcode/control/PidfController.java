@@ -11,8 +11,8 @@ public class PidfController {
     public PidfController(PidfCoefficients coeffs) {
         this.coeffs = coeffs;
     }
-    public void reset(double t) {
-        lastTime = t;
+    public void reset() {
+        lastTime = Double.NaN;
         i = 0;
     }
     public void setCoeffs(PidfCoefficients coeffs) {
@@ -32,7 +32,7 @@ public class PidfController {
             d = (e - lastE) / dt;
         }
         if (e * lastE < 0) {
-            reset(time);
+            reset();
         }
         val = coeffs.kp * e + coeffs.ki * i + coeffs.kd * d + coeffs.kf.applyAsDouble(ff);
         lastTime = time;
@@ -47,7 +47,7 @@ public class PidfController {
             i += (e + lastE) * (time - lastTime) / 2;
         }
         if (e * lastE < 0) {
-            reset(time);
+            reset();
         }
         val = coeffs.kp * e + coeffs.ki * i + coeffs.kd * d + coeffs.kf.applyAsDouble(ff);
         lastTime = time;

@@ -9,6 +9,7 @@ import org.firstinspires.ftc.teamcode.command.StateMachine;
 import org.firstinspires.ftc.teamcode.command.StateMachineBuilder;
 import org.firstinspires.ftc.teamcode.command.Subsystem;
 import org.firstinspires.ftc.teamcode.command.WaitCommand;
+import org.firstinspires.ftc.teamcode.movement.Vec;
 
 public class RobotStateMachine {
     public enum robotStates {
@@ -99,16 +100,15 @@ public class RobotStateMachine {
                             robot.intake.set(0.375);}),
                         robot.lift.goBack()))
                 .addTransition(robotStates.CLIMB, robotStates.CLIMBED, new SeqCommand(
-                        new ParCommand(
-                                robot.lift.goTo(climb2),
-                                FnCommand.once(t -> robot.drive.setPto(true), robot.drive)),
-                        robot.lift.climb(robot.drive),
+                        FnCommand.once(t -> robot.drive.setPto(true), robot.drive),
+                        robot.lift.goTo(climb2),
+                        FnCommand.once(t -> robot.lift.setClimb(true)),
                         robot.lift.goTo(climb3),
-                        new WaitCommand(0.25),
-                        new ParCommand(
-                                robot.lift.goTo(climb4),
-                                FnCommand.once(t -> robot.drive.setPto(false), robot.drive)),
-                        FnCommand.once(t -> opMode.end())));
+                        new WaitCommand(0.25, t -> {
+                            robot.lift.setClimb(false);
+                            robot.drive.setPto(false);
+                            robot.drive.setPowers(new Vec(0, 0), 0);}),
+                        robot.lift.goTo(climb4)));
         return builder.build(state);
     }
 }

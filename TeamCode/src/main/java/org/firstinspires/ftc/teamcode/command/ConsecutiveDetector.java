@@ -1,9 +1,14 @@
 package org.firstinspires.ftc.teamcode.command;
 import java.util.function.BooleanSupplier;
+import java.util.function.DoubleConsumer;
+
 public class ConsecutiveDetector implements BooleanSupplier {
     private BooleanSupplier condition;
     private int num;
     private int total;
+    public static Listener listen(BooleanSupplier condition, int num, DoubleConsumer fn) {
+        return new Listener(new ConsecutiveDetector(condition, num), fn);
+    }
     public static Listener listen(BooleanSupplier condition, int num, Command command) {
         return new Listener(new ConsecutiveDetector(condition, num), command);
     }

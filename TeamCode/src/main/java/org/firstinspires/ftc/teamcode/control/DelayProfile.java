@@ -7,7 +7,7 @@ public class DelayProfile extends MotionProfile {
     }
     @Override
     public MotionState state(double t) {
-        return new MotionState(i.x + i.v * (t - ti), i.v, 0);
+        return new MotionState(i.x + i.v * (t - ti), i.v);
     }
     public static DelayProfile extendDelay(MotionProfile p, double ti, double dt) {
         return new DelayProfile(ti, p.state(ti), dt);

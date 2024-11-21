@@ -9,7 +9,6 @@ public class ValueStorage {
         RED, BLUE
     }
     public static Telemetry telemetry;
-    public static TelemetryPacket packet;
     public static Side lastSide = Side.BLUE;
     public static Pose lastPose = new Pose(0, 0, 0);
 }

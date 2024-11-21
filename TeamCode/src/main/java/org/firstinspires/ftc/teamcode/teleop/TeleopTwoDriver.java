@@ -19,27 +19,26 @@ public class TeleopTwoDriver extends CommandOpMode {
     public void initOpMode() {
         robot = new Robot(this, false);
         robot.drive.setHeading(lastPose.h + (lastSide == Side.BLUE ? PI / 2 : -PI / 2));
-        scheduler.addListener(RisingEdgeDetector.listen(() -> gamepad1.ps,
-                        FnCommand.once(t -> robot.drive.setHeading(0))),
-                RisingEdgeDetector.listen(() -> gamepad2.a, FnCommand.once(t -> {
+        scheduler.addListener(RisingEdgeDetector.listen(() -> gamepad1.ps, t -> robot.drive.setHeading(0)),
+                RisingEdgeDetector.listen(() -> gamepad2.a, t -> {
                     if (robot.stateMachine.state() == INTAKE) {
                         robot.stateMachine.transition(EXTEND, LiftPosition.inverse(new Vec(12, 0)), grabRot);
                     } else if (robot.stateMachine.state() == GRABBED || robot.stateMachine.state() == BUCKET) {
                         robot.stateMachine.transition(BUCKET, liftHighBucket);
-                    }})),
-                RisingEdgeDetector.listen(() -> gamepad2.b, FnCommand.once(t -> {
+                    }}),
+                RisingEdgeDetector.listen(() -> gamepad2.b, t -> {
                     if (robot.stateMachine.state() == GRABBED || robot.stateMachine.state() == BUCKET) {
                         robot.stateMachine.transition(BUCKET, liftLowBucket);
-                    }})),
-                RisingEdgeDetector.listen(() -> gamepad2.x, FnCommand.once(t -> {
+                    }}),
+                RisingEdgeDetector.listen(() -> gamepad2.x, t -> {
                     if (robot.stateMachine.state() == GRABBED || robot.stateMachine.state() == SIDE_CHAMBER) {
                         robot.stateMachine.transition(SIDE_CHAMBER, liftHighSideChamber);
-                    }})),
-                RisingEdgeDetector.listen(() -> gamepad2.y, FnCommand.once(t -> {
+                    }}),
+                RisingEdgeDetector.listen(() -> gamepad2.y, t -> {
                     if (robot.stateMachine.state() == GRABBED || robot.stateMachine.state() == SIDE_CHAMBER) {
                         robot.stateMachine.transition(SIDE_CHAMBER, liftLowSideChamber);
-                    }})),
-                RisingEdgeDetector.listen(() -> gamepad2.right_bumper, FnCommand.once(t -> {
+                    }}),
+                RisingEdgeDetector.listen(() -> gamepad2.right_bumper, t -> {
                     if (robot.stateMachine.state() == INTAKE || robot.stateMachine.state() == EXTEND_GRAB) {
                         robot.stateMachine.transition(GRABBED);
                     } else if (robot.stateMachine.state() == EXTEND) {
@@ -48,29 +47,36 @@ public class TeleopTwoDriver extends CommandOpMode {
                         robot.stateMachine.transition(SPECIMEN);
                     } else if (robot.stateMachine.state() == BUCKET  || robot.stateMachine.state() == SIDE_CHAMBER || robot.stateMachine.state() == SPECIMEN) {
                         robot.stateMachine.transition(INTAKE);
-                    }})),
-                RisingEdgeDetector.listen(() -> gamepad2.left_bumper, FnCommand.once(t -> {
+                    }}),
+                RisingEdgeDetector.listen(() -> gamepad2.left_bumper, t -> {
                     if (robot.stateMachine.state() == EXTEND_GRAB) {
                         robot.stateMachine.transition(EXTEND);
                     } else if (robot.stateMachine.state() == GRABBED) {
                         robot.stateMachine.transition(INTAKE);
-                    }})),
-                RisingEdgeDetector.listen(() -> gamepad1.start, FnCommand.once(t -> {
+                    }}),
+                RisingEdgeDetector.listen(() -> gamepad1.start, t -> {
                     if (robot.stateMachine.state() == INTAKE) {
                         robot.stateMachine.transition(CLIMB);
                     } else if (robot.stateMachine.state() == CLIMB) {
                         robot.stateMachine.transition(CLIMBED);
-                    }})),
-                RisingEdgeDetector.listen(() -> gamepad1.back, FnCommand.once(t -> {
+                    }}),
+                RisingEdgeDetector.listen(() -> gamepad1.back, t -> {
                     if (robot.stateMachine.state() == CLIMB) {
                         robot.stateMachine.transition(INTAKE);
-                    }})));
+                    }}));
         schedule(FnCommand.repeat(t -> {
             if (robot.stateMachine.state() == EXTEND || robot.stateMachine.state() == EXTEND_GRAB) {
                 robot.arm.setGrab(grabRot - robot.drive.getHeading(), robot.lift);
                 Vec pos = new Vec(-gamepad2.right_stick_y, /*-gamepad2.right_stick_x*/0);
                 if (pos.norm() > 0.05) {
                     schedule(robot.lift.adjust(pos/*.rotate(-robot.drive.getHeading())*/.mult(pos.norm()), 0.05));
+                }
+            }
+            if (robot.stateMachine.state() == INTAKE || robot.stateMachine.state() == SPECIMEN) {
+                if (gamepad2.dpad_down) {
+                    robot.intake.set(-1);
+                } else {
+                    robot.intake.set(0.375);
                 }
             }
             Vec ang = new Vec(-gamepad2.left_stick_y, -gamepad2.left_stick_x);
@@ -85,6 +91,6 @@ public class TeleopTwoDriver extends CommandOpMode {
             } else {
                 robot.drive.setPowers(p, turn);
             }
-        }, robot.drive));
+        }, true, robot.drive));
     }
 }
