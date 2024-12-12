@@ -99,16 +99,7 @@ public class RobotStateMachine {
                             robot.arm.setArm(armGrab);
                             robot.intake.set(0.375);}),
                         robot.lift.goBack()))
-                .addTransition(robotStates.CLIMB, robotStates.CLIMBED, new SeqCommand(
-                        FnCommand.once(t -> robot.drive.setPto(true), robot.drive),
-                        robot.lift.goTo(climb2),
-                        FnCommand.once(t -> robot.lift.setClimb(true)),
-                        robot.lift.goTo(climb3),
-                        new WaitCommand(0.25, t -> {
-                            robot.lift.setClimb(false);
-                            robot.drive.setPto(false);
-                            robot.drive.setPowers(new Vec(0, 0), 0);}),
-                        robot.lift.goTo(climb4)));
+                .addTransition(robotStates.CLIMB, robotStates.CLIMBED, robot.lift.climb());
         return builder.build(state);
     }
 }

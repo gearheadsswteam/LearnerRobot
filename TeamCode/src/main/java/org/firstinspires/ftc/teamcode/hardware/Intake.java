@@ -13,7 +13,7 @@ public class Intake implements Subsystem {
         intakeL = opMode.hardwareMap.get(CRServo.class, "intakeL");
         intakeR.setDirection(DcMotorSimple.Direction.REVERSE);
         if (!auto) {
-            opMode.schedule(FnCommand.once(t -> set(0.375), this));
+            opMode.schedule(FnCommand.once(t -> set(1), this));
         }
     }
     public void set(double power) {
