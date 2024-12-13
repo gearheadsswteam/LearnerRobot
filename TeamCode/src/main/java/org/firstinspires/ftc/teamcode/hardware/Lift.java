@@ -67,14 +67,14 @@ public class Lift implements Subsystem {
     public static final LiftPosition climb1 = new LiftPosition(17.5, 0, pivotUp);
     public static final LiftPosition climb2 = new LiftPosition(16, 0, pivotUp);
     public static final LiftPosition climb3 = new LiftPosition(8, 0, pivotUp);
-    public static final LiftPosition climb4 = new LiftPosition(9.2, 0, 1.21);
+    public static final LiftPosition climb4 = new LiftPosition(9.2, 0, 1.22);
     public static final LiftPosition climb5 = new LiftPosition(27, 0, 1);
-    public static final LiftPosition climb6 = new LiftPosition(27, 0, 1.21);
-    public static final LiftPosition climb7 = new LiftPosition(25.2, 0, 1.21);
-    public static final LiftPosition climb8 = new LiftPosition(21, 0, 1.21);
+    public static final LiftPosition climb6 = new LiftPosition(27, 0, 1.22);
+    public static final LiftPosition climb7 = new LiftPosition(25.2, 0, 1.22);
+    public static final LiftPosition climb8 = new LiftPosition(21, 0, 1.22);
     public static final LiftPosition climb9 = new LiftPosition(7.5, 0, pivotUp);
     public static final LiftPosition climb10 = new LiftPosition(9.2, 0, pivotUp);
-    public static final LiftPosition climb11 = new LiftPosition(9.2, 0, 0.7);
+    public static final LiftPosition climb11 = new LiftPosition(9.2, 0, 1);
     public static double pivotKp = 5;
     public static double pivotKi = 0;
     public static double pivotKd = 0;
@@ -123,13 +123,13 @@ public class Lift implements Subsystem {
     public static double pivotAi = 50;
     public static double pivotAf = 20;
     public static final AsymConstraints pivotDefaultConstraints = new AsymConstraints(pivotVm, pivotAi, pivotAf);
-    public static final AsymConstraints pivotBackConstraints = new AsymConstraints(2, 15, 15);
-    public static final AsymConstraints pivotClimbConstraints = new AsymConstraints(4, 8, 8);
+    public static final AsymConstraints pivotBackConstraints = new AsymConstraints(2, 16, 16);
+    public static final AsymConstraints pivotClimbConstraints = new AsymConstraints(2, 8, 8);
     public static double liftVm = 75;
     public static double liftAi = 750;
     public static double liftAf = 200;
     public static final AsymConstraints liftDefaultConstraints = new AsymConstraints(liftVm, liftAi, liftAf);
-    public static final AsymConstraints liftClimbConstraints = new AsymConstraints(20, 40, 40);
+    public static final AsymConstraints liftClimbConstraints = new AsymConstraints(20, 60, 60);
     public static double turretVm = 20;
     public static double turretAi = 100;
     public static double turretAf = 50;
@@ -203,7 +203,7 @@ public class Lift implements Subsystem {
                 pivotProfile = AsymProfile.extendAsym(pivotProfile, pivotConstraints,
                         t, new MotionState(pos.pivotAng));
                 liftProfile = AsymProfile.extendAsym(liftProfile, liftConstraints,
-                        t + 0.1, new MotionState(pos.liftExt));
+                        t + 0.15, new MotionState(pos.liftExt));
                 turretProfile = AsymProfile.extendAsym(turretProfile, turretConstraints,
                         liftProfile.tf(), new MotionState(pos.turretAng));
             }
@@ -275,10 +275,9 @@ public class Lift implements Subsystem {
                 FnCommand.once(t -> setClimb(true)),
                 new ParCommand(
                     goTo(climb3),
-                    new WaitCommand(0.25,
-                            t -> {
-                        pivotProfile = AsymProfile.extendAsym(pivotProfile, pivotConstraints, t, new MotionState(1.21));
-                        liftConstraints = new AsymConstraints(10, 20, 20);})),
+                    new WaitCommand(0.25, t -> pivotProfile = AsymProfile.extendAsym(
+                            pivotProfile, pivotConstraints, t, new MotionState(1.22)))),
+                new WaitCommand(0.25),
                 goTo(climb4),
                 FnCommand.once(t -> {
                     setClimb(false);
@@ -305,13 +304,9 @@ public class Lift implements Subsystem {
         if (active) {
             LiftPosition pos = LiftPosition.fromPos(pivot.getCurrentPosition() - pivotOffset,
                     liftR.getCurrentPosition() - liftROffset, liftL.getCurrentPosition() - liftLOffset);
-            ValueStorage.telemetry.addData("Pivot Pos", pos.pivotAng);
-            ValueStorage.telemetry.addData("Lift Pos", pos.liftExt);
             MotionState pivotState = pivotProfile.state(t);
             MotionState liftState = liftProfile.state(t);
             MotionState turretState = turretProfile.state(t);
-            ValueStorage.telemetry.addData("Pivot Setpoint", pivotState.x);
-            ValueStorage.telemetry.addData("Lift Setpoint", liftState.x);
             if (pivotState.x == 0) {
                 pivot.setPower(-0.15);
                 pivotPidf.reset();
