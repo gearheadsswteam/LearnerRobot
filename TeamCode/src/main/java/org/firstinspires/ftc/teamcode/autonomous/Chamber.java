@@ -23,9 +23,9 @@ public class Chamber extends AbstractAutonomous {
     private Pose start = new Pose(-6.5, 63, PI/2);
     private Pose specimen1 = new Pose(-6.5, 31, PI/2);
     private Pose specimen2 = new Pose(-4, 30, 5*PI/6);
-    private Pose sample1 = new Pose(-32, 41, 5*PI/4);
-    private Pose sample2 = new Pose(-42.5, 41, 5*PI/4);
-    private Pose sample3 = new Pose(-53, 41, 5*PI/4);
+    private Pose sample1 = new Pose(-32, 42, 5*PI/4);
+    private Pose sample2 = new Pose(-42.5, 42, 5*PI/4);
+    private Pose sample3 = new Pose(-53, 42, 5*PI/4);
     private Pose drop1 = new Pose(-31.5, 44, 5*PI/6);
     private Pose drop2 = new Pose(-42, 44, 5*PI/6);
     private Pose preIntake = new Pose(-36, 54, 5*PI/6);
@@ -78,7 +78,7 @@ public class Chamber extends AbstractAutonomous {
                         FnCommand.once(t -> {
                             robot.arm.setArm(armGrab);
                             robot.arm.setClaw(false);
-                            robot.intake.set(0.375);}),
+                            robot.intake.set(0.3);}),
                         robot.lift.goBack()))
                 .marker(1, -0.15, t -> robot.stateMachine.transition(GRABBED))
                 .build(scheduler);

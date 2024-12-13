@@ -129,7 +129,7 @@ public class Lift implements Subsystem {
     public static double liftAi = 750;
     public static double liftAf = 200;
     public static final AsymConstraints liftDefaultConstraints = new AsymConstraints(liftVm, liftAi, liftAf);
-    public static final AsymConstraints liftClimbConstraints = new AsymConstraints(20, 60, 60);
+    public static final AsymConstraints liftClimbConstraints = new AsymConstraints(20, 40, 40);
     public static double turretVm = 20;
     public static double turretAi = 100;
     public static double turretAf = 50;
@@ -275,8 +275,10 @@ public class Lift implements Subsystem {
                 FnCommand.once(t -> setClimb(true)),
                 new ParCommand(
                     goTo(climb3),
-                    new WaitCommand(0.25, t -> pivotProfile = AsymProfile.extendAsym(
-                            pivotProfile, pivotConstraints, t, new MotionState(1.22)))),
+                    new WaitCommand(0.25, t -> {
+                        pivotProfile = AsymProfile.extendAsym(pivotProfile,
+                                pivotConstraints, t, new MotionState(1.22));
+                        liftConstraints = new AsymConstraints(10, 20, 20);})),
                 new WaitCommand(0.25),
                 goTo(climb4),
                 FnCommand.once(t -> {
@@ -316,7 +318,7 @@ public class Lift implements Subsystem {
                 pivot.setPower(pivotPidf.get());
             }
             if (!Double.isNaN(zeroTime)) {
-                double power = (t - zeroTime < 0.25) ? -0.5 : -0.25;
+                double power = (t - zeroTime < 0.25) ? -0.75 : -0.25;
                 liftR.setPower(power);
                 liftL.setPower(power);
                 liftPidf.reset();

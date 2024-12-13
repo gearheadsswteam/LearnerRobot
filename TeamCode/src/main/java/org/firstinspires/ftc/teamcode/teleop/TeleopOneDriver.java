@@ -72,7 +72,7 @@ public class TeleopOneDriver extends CommandOpMode {
                 if (gamepad1.dpad_down) {
                     robot.intake.set(-1);
                 } else {
-                    robot.intake.set(0.375);
+                    robot.intake.set(0.3);
                 }
             }
             if (gamepad1.left_trigger > 0.1) {

@@ -76,7 +76,7 @@ public class TeleopTwoDriver extends CommandOpMode {
                 if (gamepad2.dpad_down) {
                     robot.intake.set(-1);
                 } else {
-                    robot.intake.set(0.375);
+                    robot.intake.set(0.3);
                 }
             }
             Vec ang = new Vec(-gamepad2.left_stick_y, -gamepad2.left_stick_x);

@@ -13,7 +13,7 @@ public class Arm implements Subsystem {
     public static class ArmPosition {
         public static final double armZero = 0.58;
         public static final double armRange = 3.16;
-        public static final double diffZero = 0.375;
+        public static final double diffZero = 0.3;
         public static final double diffRange = 5.76;
         public final double armAng;
         public final double wristAng;
